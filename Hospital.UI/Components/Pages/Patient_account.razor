@@ -1,0 +1,79 @@
+﻿@page "/patient"
+@rendermode InteractiveServer
+@inject NavigationManager NavManager
+@using Hospital.Data.DAO
+@using Hospital.Data.Entities
+@inject IJSRuntime JsRuntime
+
+<PageTitle>Patient Account</PageTitle>
+
+<h1>Patient Account</h1>
+
+<form>
+    <label for="name">Name</label>
+    <br />
+    <input type="text" name="name" required placeholder="enter your name" id="name" @bind-value="newPatient.Name" />
+    <br />
+    <label for="dob">Date of Birth</label>
+    <br />
+    <input type="date" name="dob" required placeholder="enter your DOB" id="dob" @bind-value="newPatient.DOB" />
+    <br />
+    <label for="phone">Phone</label>
+    <br />
+    <input type="phone" name="phone" required placeholder="enter your phone" id="phone" @bind-value="newPatient.Phone" />
+    <br />
+    <label for="visit_date">Visit Date</label>
+    <br />
+    <input type="datetime" name="visit_date" required placeholder="enter your visit date " id="visit_date" @bind-value="newPatient.VisitDate" />
+    <br />
+    @* <label for="visit_time">Visit Time</label>
+    <br />
+    <input type="time" name="visit_time" required placeholder="enter your visit time" id="visit_time" @bind-value="newPatient.VistTime" />  *@
+</form>
+
+<br />
+@* <span>
+    <button @onclick="AddDatabase" class="btn btn-primary">Add</button>
+    <button class="btn btn-primary" @onclick="GoToList">Go to Patient list</button>
+</span> *@
+
+<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
+    <RadzenButton Click=@(args => AddDatabase()) Text="Add" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" />
+    <RadzenButton Click=@(args => GoToList()) Text="Go to Patient list" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" />
+
+    @* <button class="btn btn-primary" @onclick="PatientAccount">Create patient account</button>
+    <button class="btn btn-primary" @onclick="PatientRecord">Create patient visit record</button> *@
+
+</RadzenStack>
+
+@code {
+
+
+    [Inject]
+    public ApplicationDBContext context { get; set; }
+
+    public List<Patient> AllPatients { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        AllPatients = context.Patients.ToList();
+
+        base.OnInitialized();
+    }
+
+    Patient newPatient { get; set; } = new();
+
+    private async void AddDatabase()
+    {
+        await context.Patients.AddAsync(newPatient);
+        await context.SaveChangesAsync(); // Await SaveChangesAsync()
+        newPatient = new();
+        StateHasChanged();
+        await JsRuntime.InvokeVoidAsync("alert", "Success!");
+    }
+    private void GoToList()
+    {
+        NavManager.NavigateTo("/list");
+    }
+
+}

@@ -1,0 +1,121 @@
+﻿@page "/list"
+@rendermode InteractiveServer
+@using Hospital.Data.Entities
+@using Hospital.Data.DAO
+@inject DialogService DialogService
+
+@inject ApplicationDBContext PatientService
+@inject NavigationManager NavManager
+
+<h1>Patient List</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>DOB</th>
+            <th>Phone</th>
+            <th>Visit Date</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in AllPatients)
+        {
+            <tr>
+                <td>@item.ID</td>
+                <td>@item.Name</td>
+                <td>@item.DOB</td>
+                <td>@item.Phone</td>
+                <td>@item.VisitDate</td>
+                <td>
+                    <button class="btn btn-primary" @onclick="()=>EditPatient(item)">Edit</button>
+                </td>
+                <td>
+
+                    <button class="btn btn-primary" @onclick="()=>Delete(item)">Delete</button>
+                </td>
+            </tr>
+            @if (item == editedPatient)
+            {
+                <tr>
+                    <td colspan="6">
+                        <input type="text" value="@editedPatient.Name" @oninput="(e) => editedPatient.Name = e.Value.ToString()" />
+                        <input type="date" value="@editedPatient.DOB.ToString("yyyy-MM-dd")" @oninput="(e) => editedPatient.DOB = DateTime.Parse(e.Value.ToString())" />
+                        <input type="text" value="@editedPatient.Phone" @oninput="(e) => editedPatient.Phone = e.Value.ToString()" />
+                        <input type="date" value="@editedPatient.VisitDate.ToString("yyyy-MM-dd")" @oninput="(e) => editedPatient.VisitDate = DateTime.Parse(e.Value.ToString())" />
+                        <button class="btn btn-primary" @onclick="SaveChanges">Save</button>
+                        <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+
+
+
+@code {
+    [Inject]
+    public ApplicationDBContext context { get; set; }
+
+    List<Patient> AllPatients { get; set; } = new List<Patient>();
+
+    Patient editedPatient { get; set; }
+    Patient originalPatient { get; set; }
+
+    protected override void OnInitialized()
+    {
+        AllPatients = context.Patients.ToList();
+    }
+
+    private void EditPatient(Patient patient)
+    {
+        editedPatient = patient;
+        // Create a copy of the original patient object
+        originalPatient = new Patient
+            {
+                ID = patient.ID,
+                Name = patient.Name,
+                DOB = patient.DOB,
+                Phone = patient.Phone,
+                VisitDate = patient.VisitDate
+            };
+    }
+
+    private void SaveChanges()
+    {
+        context.SaveChanges();
+        editedPatient = null;
+        originalPatient = null;
+        // Update the list directly after saving changes
+        AllPatients = context.Patients.ToList();
+    }
+
+    private void CancelEdit()
+    {
+        // Restore original values
+        if (originalPatient != null)
+        {
+            editedPatient.ID = originalPatient.ID;
+            editedPatient.Name = originalPatient.Name;
+            editedPatient.DOB = originalPatient.DOB;
+            editedPatient.Phone = originalPatient.Phone;
+            editedPatient.VisitDate = originalPatient.VisitDate;
+        }
+
+        editedPatient = null;
+        originalPatient = null;
+    }
+
+    public void Delete(Patient patient)
+    {
+        context.Patients.Remove(patient);
+        context.SaveChanges();
+        // Update the list directly after deleting
+        AllPatients = context.Patients.ToList();
+    }
+}

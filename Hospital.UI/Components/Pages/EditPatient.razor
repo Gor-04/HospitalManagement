@@ -1,0 +1,63 @@
+﻿@page "/edit/{patientID}"
+@using Hospital.Data.Entities
+@using Hospital.Data.DAO
+@inject NavigationManager NavManager
+
+<h1>Edit Patient</h1>
+
+@if (Patient != null)
+{
+        <div>
+            <label>Name:</label>
+            <input type="text" @bind="Patient.Name" />
+        </div>
+        <div>
+            <label>Date of Birth:</label>
+            <input type="date" @bind="Patient.DOB" />
+        </div>
+        <div>
+            <label>Phone:</label>
+            <input type="text" @bind="Patient.Phone" />
+        </div>
+        <!-- Add more input fields as needed -->
+
+        <button class="btn btn-primary" @onclick="()=>UpdatePatient()">Save Changes</button>
+        <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    [Parameter]
+    public string patientID { get; set; }
+
+    Patient Patient { get; set; }
+
+    [Inject]
+    public ApplicationDBContext context { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (int.TryParse(patientID, out int id))
+        {
+            Patient = context.Patients.FirstOrDefault(p => p.ID == id);
+        }
+        else
+        {
+            NavManager.NavigateTo("/error");
+        }
+    }
+
+    private async Task UpdatePatient()
+    {
+        await context.SaveChangesAsync();
+        NavManager.NavigateTo("/list", true);
+    }
+
+    private void CancelEdit()
+    {
+        NavManager.NavigateTo("/list", true);
+    }
+}

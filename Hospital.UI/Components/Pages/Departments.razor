@@ -1,0 +1,37 @@
+@* @page "/departments"
+@page "/"
+
+@rendermode InteractiveServer
+// route to page
+@using Hospital.Data.DAO
+@using Hospital.Data.Entities
+
+<h3>Departments</h3>
+
+@foreach (var item in AllDepartments)
+{
+    <div>
+        <h4>@item.Id</h4>
+        <p>@item.Name</p>
+    </div>
+}
+
+<!-- C# Code goes here -->
+
+@code {
+
+    // creating object of DAO
+    [Inject] public ApplicationDBContext context { get; set; }
+
+    public List<Department> AllDepartments { get; set; } = new();
+
+    //this function working first at render
+    protected override void OnInitialized()
+    {
+        // get all departments from database
+        AllDepartments = context.Departments.ToList();
+    }
+
+}
+
+ *@

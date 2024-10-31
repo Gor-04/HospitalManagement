@@ -1,0 +1,111 @@
+﻿@page "/record"
+@rendermode InteractiveServer
+@inject NavigationManager NavManager
+@using Hospital.Data.DAO
+@using Hospital.Data.Entities
+@inject DialogService DialogService
+
+<PageTitle>Patient Visit Record</PageTitle>
+
+<h1>Patient Account</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>DOB</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in AllPatients)
+        {
+            <tr>
+                <td>@item.ID</td>
+                <td>@item.Name</td>
+                <td>@item.DOB</td>
+                <td>
+                    @* <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
+                        <RadzenButton Click=@(args =>AddDiagnosis(item) ) Text="Add New" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" />
+                     </RadzenStack> *@
+                 <button class="btn btn-primary" @onclick="()=>AddDiagnosis(item)">Add Diagnosis</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@if (addedDiagnosis != null)
+{
+    <div>
+        <h2>Add Diagnosis for @addedDiagnosis.Name</h2>
+        <div>
+            <RadzenLabel>Diagnosis</RadzenLabel>
+            <input type="text" @bind="Diagnosis" />
+        </div>
+        <div>
+            <RadzenLabel>Medicine</RadzenLabel>
+            <input type="text" @bind="Medicine" />
+        </div>
+        <button class="btn btn-primary" @onclick="SaveDiagnosis">Save</button>
+        <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+    </div>
+}
+else
+{
+    <p>No patient selected for adding diagnosis.</p>
+}
+@code {
+
+    [Inject]
+    public ApplicationDBContext context { get; set; }
+
+    List<Patient> AllPatients { get; set; } = new List<Patient>();
+    Patient addedDiagnosis { get; set; }
+    string Diagnosis { get; set; }
+    string Medicine { get; set; }
+
+    protected override void OnInitialized()
+    {
+        AllPatients = context.Patients.ToList();
+    }
+
+    private void AddDiagnosis(Patient patient)
+    {
+        addedDiagnosis = patient;
+
+    }
+
+    private void SaveDiagnosis()
+    {
+        var record = new DiagnosisRecord
+            {
+                PatientID = addedDiagnosis.ID,
+                PatientName = addedDiagnosis.Name,
+                Diagnosis = Diagnosis,
+                Medicine = Medicine
+            };
+
+        // Add the new diagnosis record to the context and save changes to the database
+          context.DiagnosisRecords.Add(record);
+          context.SaveChanges();
+
+        // Clear the input fields after successfully saving the diagnosis and medicine
+        Diagnosis = "";
+        Medicine = "";
+
+         NavManager.NavigateTo("/diagnosisList");
+        // Hide the diagnosis form
+        addedDiagnosis = null;
+        
+    }
+
+    private void CancelEdit()
+    {
+        // Clear the input fields
+        Diagnosis = "";
+        Medicine = "";
+       
+        // Hide the diagnosis form
+        addedDiagnosis = null;
+    }
+}
