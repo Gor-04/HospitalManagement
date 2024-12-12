@@ -7,7 +7,8 @@
 
 <PageTitle>Patient Account</PageTitle>
 
-<h1>Patient Account</h1>
+<h1>Welcome to ScheduleUp!</h1>
+<p>Book your appointment below</p>
 
 <form>
     <label for="name">Name</label>
@@ -24,7 +25,7 @@
     <br />
     <label for="visit_date">Visit Date</label>
     <br />
-    <input type="datetime" name="visit_date" required placeholder="enter your visit date " id="visit_date" @bind-value="newPatient.VisitDate" />
+    <input type="datetime-local" name="visit_date" required placeholder="enter your visit date " id="visit_date" @bind-value="newPatient.VisitDate" />
     <br />
     @* <label for="visit_time">Visit Time</label>
     <br />

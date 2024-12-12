@@ -1,0 +1,127 @@
+﻿@page "/login"
+@using Hospital.UI.Services
+@using System.ComponentModel.DataAnnotations  <!-- Add this using directive -->
+@inject AuthenticationService AuthService
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<style>
+    .login-container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h3 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .btn-primary {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    .signup-link {
+        text-align: center;
+        margin-top: 15px;
+    }
+
+    .error-message {
+        color: red;
+        text-align: center;
+        margin-top: 10px;
+    }
+
+</style>
+
+<h3>Login</h3>
+
+<div class="login-container">
+    <EditForm Model="@loginModel" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label>Email:</label>
+            <InputText type="email" class="form-control" @bind-Value="loginModel.Email" />
+        </div>
+
+        <div class="form-group">
+            <label>Password:</label>
+            <InputText type="password" class="form-control" @bind-Value="loginModel.Password" />
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Login</button>
+        </div>
+
+        <div class="signup-link">
+            <p>Don't have an account? <a href="/">Sign up here</a></p>
+        </div>
+
+        @if (loginFailed)
+        {
+            <div class="error-message">Invalid email or password. Please try again.</div>
+        }
+    </EditForm>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private bool loginFailed = false;
+
+    private async Task HandleValidSubmit()
+    {
+        loginFailed = false; // Reset login failed flag
+
+        bool isAuthenticated = await AuthService.LoginUserAsync(loginModel.Email, loginModel.Password);
+        if (isAuthenticated)
+        {
+            // Redirect to the patient page on successful login
+            NavigationManager.NavigateTo("/patient");
+        }
+        else
+        {
+            // Display error message if login fails
+            loginFailed = true;
+            Console.WriteLine("Login failed. Invalid email or password.");
+        }
+    }
+
+    public class LoginModel
+    {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Password is required")]
+        [MinLength(6, ErrorMessage = "Password must be at least 6 characters long")]
+        public string Password { get; set; }
+    }
+}
