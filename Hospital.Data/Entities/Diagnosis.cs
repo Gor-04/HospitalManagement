@@ -16,6 +16,7 @@ namespace Hospital.Data.Entities
         [StringLength(100)]
         public string PatientName { get; set; }
 
+
         [Required]
         [StringLength(255)]
         public string Diagnosis { get; set; }

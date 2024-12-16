@@ -15,6 +15,10 @@
     <br />
     <input type="text" name="name" required placeholder="enter your name" id="name" @bind-value="newPatient.Name" />
     <br />
+    <label for="surname">Surname</label>
+    <br />
+    <input type="text" name="surname" required placeholder="enter your surname" id="surname" @bind-value="newPatient.Surname" />
+    <br />
     <label for="dob">Date of Birth</label>
     <br />
     <input type="date" name="dob" required placeholder="enter your DOB" id="dob" @bind-value="newPatient.DOB" />
@@ -39,17 +43,13 @@
 </span> *@
 
 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
-    <RadzenButton Click=@(args => AddDatabase()) Text="Add" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" />
-    <RadzenButton Click=@(args => GoToList()) Text="Go to Patient list" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" />
-
-    @* <button class="btn btn-primary" @onclick="PatientAccount">Create patient account</button>
-    <button class="btn btn-primary" @onclick="PatientRecord">Create patient visit record</button> *@
-
+    <RadzenButton Click="AddDatabase" Text="Add" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" />
+    <RadzenButton Click="GoToList" Text="Go to Patient list" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" />
 </RadzenStack>
 
+
+
 @code {
-
-
     [Inject]
     public ApplicationDBContext context { get; set; }
 
@@ -58,7 +58,6 @@
     protected override void OnInitialized()
     {
         AllPatients = context.Patients.ToList();
-
         base.OnInitialized();
     }
 
@@ -67,7 +66,7 @@
     private async void AddDatabase()
     {
         await context.Patients.AddAsync(newPatient);
-        await context.SaveChangesAsync(); // Await SaveChangesAsync()
+        await context.SaveChangesAsync();
         newPatient = new();
         StateHasChanged();
         await JsRuntime.InvokeVoidAsync("alert", "Success!");
@@ -76,5 +75,4 @@
     {
         NavManager.NavigateTo("/list");
     }
-
 }

@@ -3,6 +3,7 @@ using Radzen;
 using Hospital.Data.DAO;
 using Hospital.UI.Components;
 using Hospital.UI.Services;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,7 @@ builder.Services.AddScoped<DialogService>();
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<AuthenticationService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -40,5 +40,10 @@ namespace Hospital.UI.Services
             // Validate user credentials without password hashing
             return await _context.Users.AnyAsync(u => u.Email == email && u.Password == password);
         }
+        public async Task<bool> IsDoctorAsync(string email)
+        {
+            // Check if the email domain matches "@doctors.com"
+            return email.EndsWith("@doctor.com", StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

@@ -13,6 +13,10 @@ public class Patient
     public string Name { get; set; }
 
     [Required]
+    [StringLength(50)]
+    public string Surname { get; set; }
+
+    [Required]
     public DateTime DOB { get; set; }
 
     [Column(TypeName = "varchar(20)")]
@@ -21,10 +25,11 @@ public class Patient
     [Required]
     public DateTime VisitDate { get; set; }
 
-    [Required]
-    public TimeSpan VistTime { get; set; }
 
-    public string? Diagnosis { get; set; } 
+
+    public string? Diagnosis { get; set; }
     public string? Medicine { get; set; }
+
+  
 
 }
