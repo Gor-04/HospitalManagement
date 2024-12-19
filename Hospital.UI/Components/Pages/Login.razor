@@ -3,6 +3,7 @@
 @using System.ComponentModel.DataAnnotations  <!-- Add this using directive -->
 @inject AuthenticationService AuthService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
 
 @rendermode InteractiveServer
 
@@ -97,30 +98,28 @@
 
     private async Task HandleValidSubmit()
     {
-        loginFailed = false; // Reset login failed flag
+        loginFailed = false;
 
         bool isAuthenticated = await AuthService.LoginUserAsync(loginModel.Email, loginModel.Password);
+
         if (isAuthenticated)
         {
-            // Determine if the user is a doctor
-            bool isDoctor = await AuthService.IsDoctorAsync(loginModel.Email);
+            // Store email in localStorage
+            await JsRuntime.InvokeVoidAsync("localStorage.setItem", "loggedInUser", loginModel.Email);
 
-            if (isDoctor)
+            // Redirect based on user type
+            if (await AuthService.IsDoctorAsync(loginModel.Email))
             {
-                // Redirect to the doctor record page
                 NavigationManager.NavigateTo("/record");
             }
             else
             {
-                // Redirect to the patient page
                 NavigationManager.NavigateTo("/patient");
             }
         }
         else
         {
-            // Display error message if login fails
             loginFailed = true;
-            Console.WriteLine("Login failed. Invalid email or password.");
         }
     }
 

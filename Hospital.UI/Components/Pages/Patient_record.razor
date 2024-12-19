@@ -4,111 +4,98 @@
 @using Hospital.Data.DAO
 @using Hospital.Data.Entities
 @inject DialogService DialogService
-
 <PageTitle>Patient Visit Record</PageTitle>
-
-<div class="container mt-5">
-    <div class="text-center mb-4">
-        <h1 class="display-5">Patient Visit Record</h1>
-        <p class="lead">Select a patient and add a new diagnosis record.</p>
-    </div>
-
-    <div class="d-flex justify-content-center">
-        <table class="table table-bordered text-center" style="max-width: 800px;">
-            <thead class="table">
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>DOB</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in AllPatients)
-                {
-                    <tr>
-                        <td>@item.ID</td>
-                        <td>@item.Name</td>
-                        <td>@item.DOB.ToShortDateString()</td>
-                        <td>
-                            <RadzenButton Click=@(() => AddDiagnosis(item)) Text="Add Diagnosis" ButtonStyle="ButtonStyle.Primary" Icon="add_circle_outline" />
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-
-    @if (addedDiagnosis != null)
-    {
-        <div class="card mt-5 mx-auto" style="max-width: 600px;">
-            <div class="card-body">
-                <h2 class="card-title text-center">Add Diagnosis for @addedDiagnosis.Name</h2>
-
-                <div class="form-group mb-3">
-                    <label for="diagnosisInput" class="form-label">Diagnosis</label>
-                    <input id="diagnosisInput" type="text" class="form-control" @bind="Diagnosis" placeholder="Enter diagnosis" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="medicineInput" class="form-label">Medicine</label>
-                    <input id="medicineInput" type="text" class="form-control" @bind="Medicine" placeholder="Enter prescribed medicine" />
-                </div>
-
-                <div class="d-flex justify-content-between">
-                    <button class="btn btn-success" @onclick="SaveDiagnosis">Save</button>
-                    <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
-                </div>
-            </div>
+<h1>Patient Account</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>DOB</th>
+            <th>Appointment Date</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in AllPatients)
+        {
+            <tr>
+                <td>@item.ID</td>
+                <td>@item.Name</td>
+                <td>@item.DOB</td>
+                <td>@item.VisitDate</td>
+                <td>
+                    @* <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
+                <RadzenButton Click=@(args =>AddDiagnosis(item) ) Text="Add New" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" />
+                </RadzenStack> *@
+                    <button class="btn btn-primary" @onclick="()=>AddDiagnosis(item)">Add Diagnosis</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@if (addedDiagnosis != null)
+{
+    <div>
+        <h2>Add Diagnosis for @addedDiagnosis.Name</h2>
+        <div>
+            <RadzenLabel>Diagnosis</RadzenLabel>
+            <input type="text" @bind="Diagnosis" />
         </div>
-    }
-    else
-    {
-        <p class="text-center mt-4">No patient selected for adding diagnosis.</p>
-    }
-</div>
-
+        <div>
+            <RadzenLabel>Medicine</RadzenLabel>
+            <input type="text" @bind="Medicine" />
+        </div>
+        <button class="btn btn-primary" @onclick="SaveDiagnosis">Save</button>
+        <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+    </div>
+}
+else
+{
+    <p>No patient selected for adding diagnosis.</p>
+}
 @code {
     [Inject]
     public ApplicationDBContext context { get; set; }
-
     List<Patient> AllPatients { get; set; } = new List<Patient>();
     Patient addedDiagnosis { get; set; }
     string Diagnosis { get; set; }
     string Medicine { get; set; }
-
     protected override void OnInitialized()
     {
         AllPatients = context.Patients.ToList();
     }
-
     private void AddDiagnosis(Patient patient)
     {
         addedDiagnosis = patient;
     }
-
     private void SaveDiagnosis()
     {
         var record = new DiagnosisRecord
-        {
-            PatientID = addedDiagnosis.ID,
-            Diagnosis = Diagnosis,
-            Medicine = Medicine
-        };
-
+            {
+                PatientID = addedDiagnosis.ID,
+                PatientName = addedDiagnosis.Name,
+                Diagnosis = Diagnosis,
+                Medicine = Medicine
+            };
+        // Add the new diagnosis record to the context and save changes to the database
         context.DiagnosisRecords.Add(record);
         context.SaveChanges();
-
+        // Clear the input fields after successfully saving the diagnosis and medicine
         Diagnosis = "";
         Medicine = "";
         NavManager.NavigateTo("/diagnosisList");
+        // Hide the diagnosis form
         addedDiagnosis = null;
-    }
 
+    }
     private void CancelEdit()
     {
+        // Clear the input fields
         Diagnosis = "";
         Medicine = "";
+
+        // Hide the diagnosis form
         addedDiagnosis = null;
     }
 }

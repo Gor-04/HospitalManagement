@@ -1,6 +1,5 @@
 ﻿@page "/"
 @using Hospital.UI.Services
-@using Hospital.Data.DAO
 @using Hospital.Data.Entities
 @inject AuthenticationService AuthService
 @inject NavigationManager NavigationManager
@@ -52,12 +51,12 @@
         text-align: center;
         margin-top: 15px;
     }
-
 </style>
+
 <h3>Sign Up</h3>
 
 <div class="signup-container">
-    <EditForm Model="@newUser" OnInvalidSubmit="@inValidTask" OnValidSubmit="@HandleValidSubmit"  FormName="SignUpForm">
+    <EditForm Model="@newUser" OnInvalidSubmit="@inValidTask" OnValidSubmit="@HandleValidSubmit" FormName="SignUpForm">
         <DataAnnotationsValidator />
         <ValidationSummary />
 
@@ -65,22 +64,27 @@
             <label>Name:</label>
             <InputText class="form-control" @bind-Value="@newUser.Name" />
         </div>
+
         <div class="form-group">
             <label>Surname:</label>
-            <InputText class="form-control" @bind-Value="newUser.Surname" />
+            <InputText class="form-control" @bind-Value="@newUser.Surname" />
         </div>
+
         <div class="form-group">
             <label>ID Number:</label>
-            <InputText class="form-control" @bind-Value="newUser.IdNumber" />
+            <InputText class="form-control" @bind-Value="@newUser.IdNumber" />
         </div>
+
         <div class="form-group">
             <label>Email:</label>
-            <InputText type="email" class="form-control" @bind-Value="newUser.Email" />
+            <InputText type="email" class="form-control" @bind-Value="@newUser.Email" />
         </div>
+
         <div class="form-group">
             <label>Password:</label>
-            <InputText type="password" class="form-control" @bind-Value="newUser.Password" />
+            <InputText type="password" class="form-control" @bind-Value="@newUser.Password" />
         </div>
+
         <div class="form-group">
             <button type="submit" class="btn btn-primary">Sign Up</button>
         </div>
@@ -99,54 +103,16 @@
         var success = await AuthService.RegisterUserAsync(newUser);
         if (success)
         {
-            NavigationManager.NavigateTo("/patient");
+            NavigationManager.NavigateTo("/login");
         }
         else
         {
             Console.WriteLine("Registration failed - email may already exist.");
         }
     }
+
     private async Task inValidTask()
     {
-        Console.WriteLine("Registration failed - email may already exist.");
+        Console.WriteLine("Registration failed - invalid form data.");
     }
 }
-
-
-@* @rendermode InteractiveServer
-
- @inject NavigationManager NavManager
- @inject DialogService DialogService
-
- <RadzenComponents />
- <PageTitle>Home</PageTitle>
- 
-
- </RadzenCard>
-  <div class="home_page">
-      <h1>Welcome to our Hospital!</h1>
-      <br />
-      <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
-          <RadzenButton Click=@(args => PatientAccount()) Text="Create patient account" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" />
-          <RadzenButton Click=@(args => PatientRecord()) Text="Create patient visit record" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" />
-
-       <button class="btn btn-primary" @onclick="PatientAccount">Create patient account</button>
-      <button class="btn btn-primary" @onclick="PatientRecord">Create patient visit record</button> 
-      </RadzenStack> 
- </div>  
-
-
- @code {
-    
-
-     protected void PatientAccount()
-     {
-         NavManager.NavigateTo("/patient");
-     }
-     protected void PatientRecord()
-     {
-         NavManager.NavigateTo("/record");
-     }
-
- }
- *@

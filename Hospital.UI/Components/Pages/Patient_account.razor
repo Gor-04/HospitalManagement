@@ -3,76 +3,158 @@
 @inject NavigationManager NavManager
 @using Hospital.Data.DAO
 @using Hospital.Data.Entities
+@using Microsoft.EntityFrameworkCore
 @inject IJSRuntime JsRuntime
+
 
 <PageTitle>Patient Account</PageTitle>
 
-<h1>Welcome to ScheduleUp!</h1>
-<p>Book your appointment below</p>
+<div class="header">
+    <h1>Welcome to your Patient Dashboard!</h1>
+    <RadzenButton Text="Log Out" ButtonStyle="ButtonStyle.Primary" Click="LogOut" Class="logout-button" />
+</div>
 
+@if (IsDataLoaded)
+{
+    <div>
+        <p><strong>Name:</strong> @UserName</p>
+        <p><strong>Surname:</strong> @UserSurname</p>
+        <p><strong>Email:</strong> @LoggedInUser</p>
+    </div>
+
+    @if (LastAddedPatient != null)
+    {
+        <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
+            <h3>Appointment Details</h3>
+            <p><strong>Appointment Date:</strong> @LastAddedPatient.VisitDate.ToString("g")</p>
+
+            @if (LastDiagnosisRecord != null)
+            {
+                <p><strong>Diagnosis:</strong> @LastDiagnosisRecord.Diagnosis</p>
+                <p><strong>Medicine:</strong> @LastDiagnosisRecord.Medicine</p>
+            }
+            else
+            {
+                <p>No diagnosis record available.</p>
+            }
+        </div>
+    }
+}
+else
+{
+    <p>Loading your account data...</p>
+}
+
+<h3>Book an Appointment</h3>
 <form>
-    <label for="name">Name</label>
+    <label for="name">Name:</label>
     <br />
-    <input type="text" name="name" required placeholder="enter your name" id="name" @bind-value="newPatient.Name" />
+    <input type="text" name="name" required placeholder="Enter your name" id="name" @bind-value="newPatient.Name" />
     <br />
-    <label for="surname">Surname</label>
+
+    <label for="surname">Surname:</label>
     <br />
-    <input type="text" name="surname" required placeholder="enter your surname" id="surname" @bind-value="newPatient.Surname" />
+    <input type="text" name="surname" required placeholder="Enter your surname" id="surname" @bind-value="newPatient.Surname" />
     <br />
-    <label for="dob">Date of Birth</label>
+
+    <label for="dob">Date of Birth:</label>
     <br />
-    <input type="date" name="dob" required placeholder="enter your DOB" id="dob" @bind-value="newPatient.DOB" />
+    <input type="date" name="dob" required id="dob" @bind-value="newPatient.DOB" />
     <br />
-    <label for="phone">Phone</label>
+
+    <label for="phone">Phone:</label>
     <br />
-    <input type="phone" name="phone" required placeholder="enter your phone" id="phone" @bind-value="newPatient.Phone" />
+    <input type="text" name="phone" placeholder="Enter your phone number" id="phone" @bind-value="newPatient.Phone" />
     <br />
-    <label for="visit_date">Visit Date</label>
+
+    <label for="visit_date">Visit Date:</label>
     <br />
-    <input type="datetime-local" name="visit_date" required placeholder="enter your visit date " id="visit_date" @bind-value="newPatient.VisitDate" />
+    <input type="datetime-local" name="visit_date" required id="visit_date" @bind-value="newPatient.VisitDate" />
     <br />
-    @* <label for="visit_time">Visit Time</label>
-    <br />
-    <input type="time" name="visit_time" required placeholder="enter your visit time" id="visit_time" @bind-value="newPatient.VistTime" />  *@
 </form>
 
-<br />
-@* <span>
-    <button @onclick="AddDatabase" class="btn btn-primary">Add</button>
-    <button class="btn btn-primary" @onclick="GoToList">Go to Patient list</button>
-</span> *@
-
 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
-    <RadzenButton Click="AddDatabase" Text="Add" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" />
-    <RadzenButton Click="GoToList" Text="Go to Patient list" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" />
+    <RadzenButton Click="AddDatabase" Text="Book Appointment" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" />
 </RadzenStack>
-
-
 
 @code {
     [Inject]
     public ApplicationDBContext context { get; set; }
 
-    public List<Patient> AllPatients { get; set; } = new();
+    private Patient newPatient { get; set; } = new();
+    private Patient LastAddedPatient { get; set; } = null;
+    private DiagnosisRecord LastDiagnosisRecord { get; set; } = null;
 
-    protected override void OnInitialized()
+    private string LoggedInUser { get; set; } = string.Empty;
+    private string UserName { get; set; } = string.Empty;
+    private string UserSurname { get; set; } = string.Empty;
+    private bool IsDataLoaded { get; set; } = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        AllPatients = context.Patients.ToList();
-        base.OnInitialized();
+        if (firstRender)
+        {
+            LoggedInUser = await JsRuntime.InvokeAsync<string>("localStorage.getItem", "loggedInUser");
+
+            if (!string.IsNullOrEmpty(LoggedInUser))
+            {
+                var user = await context.Users.FirstOrDefaultAsync(u => u.Email == LoggedInUser);
+
+                if (user != null)
+                {
+                    UserName = user.Name;
+                    UserSurname = user.Surname;
+
+                    LastAddedPatient = await context.Patients
+                        .Where(p => p.UserId == user.Id)
+                        .OrderByDescending(p => p.VisitDate)
+                        .FirstOrDefaultAsync();
+
+                    if (LastAddedPatient != null)
+                    {
+                        LastDiagnosisRecord = await context.DiagnosisRecords
+                            .FirstOrDefaultAsync(d => d.PatientID == LastAddedPatient.ID);
+                    }
+                }
+            }
+
+            IsDataLoaded = true;
+            StateHasChanged();
+        }
     }
 
-    Patient newPatient { get; set; } = new();
+    private async Task LogOut()
+    {
+        await JsRuntime.InvokeVoidAsync("localStorage.removeItem", "loggedInUser");
+        NavManager.NavigateTo("/login");
+    }
 
     private async void AddDatabase()
     {
-        await context.Patients.AddAsync(newPatient);
-        await context.SaveChangesAsync();
-        newPatient = new();
-        StateHasChanged();
-        await JsRuntime.InvokeVoidAsync("alert", "Success!");
-    }
-    private void GoToList()
-    {
-        NavManager.NavigateTo("/list");
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Email == LoggedInUser);
+
+        if (user != null)
+        {
+            newPatient.UserId = user.Id;
+
+            await context.Patients.AddAsync(newPatient);
+            await context.SaveChangesAsync();
+
+            LastAddedPatient = new Patient
+                {
+                    Name = newPatient.Name,
+                    Surname = newPatient.Surname,
+                    DOB = newPatient.DOB,
+                    VisitDate = newPatient.VisitDate
+                };
+
+            LastDiagnosisRecord = await context.DiagnosisRecords
+                .FirstOrDefaultAsync(d => d.PatientID == newPatient.ID);
+
+            newPatient = new(); // Reset form
+            StateHasChanged();
+
+            await JsRuntime.InvokeVoidAsync("alert", "Appointment booked successfully!");
+        }
     }
 }

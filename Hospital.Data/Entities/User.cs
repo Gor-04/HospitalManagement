@@ -30,6 +30,10 @@ namespace Hospital.Data.Entities
         [MinLength(6)]
         public string Password { get; set; }
 
+        // Foreign Key to Patient
+        public int? PatientId { get; set; }
+        [ForeignKey("PatientId")]
+        public virtual Patient Patient { get; set; }
     }
 }
 
