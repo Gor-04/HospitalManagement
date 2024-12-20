@@ -3,8 +3,7 @@
 @using Hospital.Data.Entities
 @using Hospital.Data.DAO
 @inject DialogService DialogService
-
-@inject ApplicationDBContext PatientService
+@inject ApplicationDBContext context
 @inject NavigationManager NavManager
 
 <h1>Patient List</h1>
@@ -23,99 +22,291 @@
     </thead>
     <tbody>
         @foreach (var item in AllPatients)
+
         {
             <tr>
                 <td>@item.ID</td>
                 <td>@item.Name</td>
-                <td>@item.DOB</td>
+                <td>@item.DOB.ToString("yyyy-MM-dd")</td>
                 <td>@item.Phone</td>
-                <td>@item.VisitDate</td>
+                <td>@item.VisitDate.ToString("yyyy-MM-dd")</td>
                 <td>
                     <button class="btn btn-primary" @onclick="()=>EditPatient(item)">Edit</button>
                 </td>
                 <td>
-
-                    <button class="btn btn-primary" @onclick="()=>Delete(item)">Delete</button>
+                    <button class="btn btn-danger" @onclick="()=>Delete(item)">Delete</button>
                 </td>
             </tr>
-            @if (item == editedPatient)
-            {
-                <tr>
-                    <td colspan="6">
-                        <input type="text" value="@editedPatient.Name" @oninput="(e) => editedPatient.Name = e.Value.ToString()" />
-                        <input type="date" value="@editedPatient.DOB.ToString("yyyy-MM-dd")" @oninput="(e) => editedPatient.DOB = DateTime.Parse(e.Value.ToString())" />
-                        <input type="text" value="@editedPatient.Phone" @oninput="(e) => editedPatient.Phone = e.Value.ToString()" />
-                        <input type="date" value="@editedPatient.VisitDate.ToString("yyyy-MM-dd")" @oninput="(e) => editedPatient.VisitDate = DateTime.Parse(e.Value.ToString())" />
-                        <button class="btn btn-primary" @onclick="SaveChanges">Save</button>
-                        <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
-                    </td>
-                </tr>
-            }
         }
     </tbody>
 </table>
 
+@if (editedPatient != null)
 
+{
+    <div class="form-container">
+        <h2>Edit Patient: @editedPatient.Name</h2>
+        <div>
+            <label for="name">Name</label>
+            <input type="text" id="name" @bind="editedPatient.Name" placeholder="Enter name" />
+        </div>
+        <div>
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" @bind="editedPatient.DOB" />
+        </div>
+        <div>
+            <label for="phone">Phone</label>
+            <input type="text" id="phone" @bind="editedPatient.Phone" placeholder="Enter phone number" />
+        </div>
+        <div>
+            <label for="visitDate">Visit Date</label>
+            <input type="date" id="visitDate" @bind="editedPatient.VisitDate" />
+        </div>
+        <button class="btn btn-primary" @onclick="SaveChanges">Save</button>
+        <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+    </div>
+}
 
+else
+
+{
+    <p style="text-align:center; color: #555; font-size: 1rem;">No patient selected for editing.</p>
+}
 
 @code {
-    [Inject]
-    public ApplicationDBContext context { get; set; }
-
     List<Patient> AllPatients { get; set; } = new List<Patient>();
 
     Patient editedPatient { get; set; }
+
     Patient originalPatient { get; set; }
 
+
+
     protected override void OnInitialized()
+
     {
+
         AllPatients = context.Patients.ToList();
+
     }
+
+
 
     private void EditPatient(Patient patient)
+
     {
+
         editedPatient = patient;
-        // Create a copy of the original patient object
+
         originalPatient = new Patient
+
             {
+
                 ID = patient.ID,
+
                 Name = patient.Name,
+
                 DOB = patient.DOB,
+
                 Phone = patient.Phone,
+
                 VisitDate = patient.VisitDate
+
             };
+
     }
+
+
 
     private void SaveChanges()
+
     {
+
         context.SaveChanges();
+
         editedPatient = null;
+
         originalPatient = null;
-        // Update the list directly after saving changes
-        AllPatients = context.Patients.ToList();
+
+        AllPatients = context.Patients.ToList(); // Refresh the patient list
+
     }
+
+
 
     private void CancelEdit()
+
     {
-        // Restore original values
+
         if (originalPatient != null)
+
         {
+
             editedPatient.ID = originalPatient.ID;
+
             editedPatient.Name = originalPatient.Name;
+
             editedPatient.DOB = originalPatient.DOB;
+
             editedPatient.Phone = originalPatient.Phone;
+
             editedPatient.VisitDate = originalPatient.VisitDate;
+
         }
 
+
+
         editedPatient = null;
+
         originalPatient = null;
+
     }
 
+
+
     public void Delete(Patient patient)
+
     {
+
         context.Patients.Remove(patient);
+
         context.SaveChanges();
-        // Update the list directly after deleting
-        AllPatients = context.Patients.ToList();
+
+        AllPatients = context.Patients.ToList(); // Refresh the patient list
+
     }
 }
+
+<style>
+    h1 {
+        font-size: 2rem;
+        color: #333;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 1rem;
+        text-align: left;
+        border: 1px solid #444;
+        background-color: darkcyan;
+        color: #f1f1f1;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    }
+
+        .table thead th {
+            background-color: darkblue;
+            color: #ffffff;
+            padding: 12px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.3s ease;
+        }
+
+            .table tbody tr:nth-child(odd) {
+                background-color: cornflowerblue;
+            }
+
+            .table tbody tr:nth-child(even) {
+                background-color: cornflowerblue;
+            }
+
+            .table tbody tr:hover {
+                background-color: blue;
+            }
+
+        .table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #444;
+        }
+
+            .table td:first-child,
+            .table th:first-child {
+                text-align: left;
+            }
+
+            .table td:last-child {
+                text-align: right;
+            }
+
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+    .form-container {
+        margin: 30px auto;
+        max-width: 600px;
+        padding: 20px;
+        background-color: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+        .form-container h2 {
+            color: #007bff;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-container div {
+            margin-bottom: 15px;
+        }
+
+        .form-container input[type="text"],
+        .form-container input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+            .form-container input[type="text"]:focus,
+            .form-container input[type="date"]:focus {
+                border-color: #007bff;
+                outline: none;
+                box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            }
+</style>

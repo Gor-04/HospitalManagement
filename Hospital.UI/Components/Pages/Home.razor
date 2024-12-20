@@ -35,16 +35,20 @@
 
     .btn-primary {
         width: 100%;
-        padding: 10px;
-        background-color: #007bff;
+        padding: 12px;
+        background-color:cornflowerblue; /* Vibrant orange */
         color: white;
+        font-size: 1rem;
         border: none;
-        border-radius: 4px;
+        border-radius: 6px;
         cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s ease, transform 0.2s ease;
     }
 
         .btn-primary:hover {
-            background-color: #0056b3;
+            background-color:darkblue; /* Darker orange */
+            transform: scale(1.05); /* Slight zoom effect */
         }
 
     .login-link {
@@ -53,9 +57,10 @@
     }
 </style>
 
-<h3>Sign Up</h3>
+
 
 <div class="signup-container">
+    <h3>Sign Up</h3>
     <EditForm Model="@newUser" OnInvalidSubmit="@inValidTask" OnValidSubmit="@HandleValidSubmit" FormName="SignUpForm">
         <DataAnnotationsValidator />
         <ValidationSummary />
